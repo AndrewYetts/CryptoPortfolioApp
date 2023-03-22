@@ -26,7 +26,7 @@ namespace CryptoPortfolioApp.Controllers
 
         private static async Task<HttpResponseMessage> GetCurrencyUpdates(string currencyNames)
         {
-            HttpClient client = new() { BaseAddress = new Uri("https://api.coingecko.com/api/v3/simple/price") };
+            var client = new HttpClient() { BaseAddress = new Uri("https://api.coingecko.com/api/v3/simple/price") };
             client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
             var response = await client.GetAsync($"?ids={currencyNames}&vs_currencies=usd&include_24hr_change=true");
             response.EnsureSuccessStatusCode();
@@ -36,31 +36,33 @@ namespace CryptoPortfolioApp.Controllers
         // GET: Currencies
         public async Task<IActionResult> Index()
         {
-            if (User.Identity != null && User.Identity.Name != null)
+            // Get the currency names that the user owns in csv format
+            var ownerName = string.Empty;
+            if (User.Identity != null && User.Identity.Name != null) ownerName = User.Identity.Name;
+            var ownedCurrencies = _context.Currencies.Where(c => c.OwnerName == ownerName).ToList();
+            var currencyNames = string.Join(",", ownedCurrencies.Select(c => c.Name));
+
+            // Get updated currency data from CoinGecko API
+            HttpResponseMessage response = GetCurrencyUpdates(currencyNames).Result;
+
+            // Update all owned currencies with the HTTP response
+            var updatedCurrency = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            foreach (Currency c in ownedCurrencies)
             {
-                // Get the currency names that the user owns in csv format
-                List<Currency> ownedCurrencies = _context.Currencies.Where(c => c.OwnerName == User.Identity.Name).ToList();
-                string currencyNames = string.Join(",", ownedCurrencies.Select(c => c.Name));
-
-                // Get updated currency data from CoinGecko API
-                HttpResponseMessage response = GetCurrencyUpdates(currencyNames).Result;
-
-                // Update all owned currencies with the HTTP response
-                var updatedCurrency = JObject.Parse(await response.Content.ReadAsStringAsync());
-
-                foreach (Currency c in ownedCurrencies)
+                if (updatedCurrency != null)
                 {
-                    c.Value = (decimal) updatedCurrency[c.Name.ToLower()]["usd"];
-                    c.DailyChange = (decimal) updatedCurrency[c.Name.ToLower()]["usd_24h_change"];
+                    var currency = updatedCurrency[c.Name.ToLower()] ?? string.Empty;
+                    c.Value = (decimal) (currency["usd"] ?? decimal.Zero);
+                    c.DailyChange = (decimal) (currency["usd_24h_change"] ?? decimal.Zero);
                     c.PortfolioValue = c.Value * c.Quantity;
                 }
-
-                _context.UpdateRange(ownedCurrencies);
-                await _context.SaveChangesAsync();
-                
-                return View(ownedCurrencies);
             }
-            return View();
+
+            _context.UpdateRange(ownedCurrencies);
+            await _context.SaveChangesAsync();
+                
+            return View(ownedCurrencies);
         }
 
         // GET: Currencies/Details/5
