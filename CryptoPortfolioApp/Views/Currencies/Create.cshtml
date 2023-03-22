@@ -12,40 +12,28 @@
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Id" class="control-label"></label>
-                <input asp-for="Id" class="form-control" />
-                <span asp-validation-for="Id" class="text-danger"></span>
-            </div>
+
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
+                <select asp-for="Name" class="form-control">
+                    <option value="Bitcoin">Bitcoin</option>
+                    <option value="Ethereum">Ethereum</option>
+                    <option value="Tether">Tether</option>
+                    <option value="BinanceCoin">BinanceCoin</option>
+                    <option value="Polkadot">Polkadot</option>
+                    <option value="Dogecoin">Dogecoin</option>
+                    <option value="USD-Coin">USD-Coin</option>
+                    <option value="Cardano">Cardano</option>
+                    <option value="Polygon">Polygon</option>
+                    <option value="Solana">Solana</option>
+                </select>
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="OwnerName" class="control-label"></label>
-                <input asp-for="OwnerName" class="form-control" />
-                <span asp-validation-for="OwnerName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Value" class="control-label"></label>
-                <input asp-for="Value" class="form-control" />
-                <span asp-validation-for="Value" class="text-danger"></span>
-            </div>
+
             <div class="form-group">
                 <label asp-for="Quantity" class="control-label"></label>
                 <input asp-for="Quantity" class="form-control" />
                 <span asp-validation-for="Quantity" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PortfolioValue" class="control-label"></label>
-                <input asp-for="PortfolioValue" class="form-control" />
-                <span asp-validation-for="PortfolioValue" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DailyChange" class="control-label"></label>
-                <input asp-for="DailyChange" class="form-control" />
-                <span asp-validation-for="DailyChange" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />

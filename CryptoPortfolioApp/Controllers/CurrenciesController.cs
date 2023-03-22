@@ -7,9 +7,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using CryptoPortfolioApp.Data;
 using CryptoPortfolioApp.Models;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace CryptoPortfolioApp.Controllers
 {
+    [Authorize]
     public class CurrenciesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -19,12 +24,43 @@ namespace CryptoPortfolioApp.Controllers
             _context = context;
         }
 
+        private static async Task<HttpResponseMessage> GetCurrencyUpdates(string currencyNames)
+        {
+            HttpClient client = new() { BaseAddress = new Uri("https://api.coingecko.com/api/v3/simple/price") };
+            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            var response = await client.GetAsync($"?ids={currencyNames}&vs_currencies=usd&include_24hr_change=true");
+            response.EnsureSuccessStatusCode();
+            return response;
+        }
+
         // GET: Currencies
         public async Task<IActionResult> Index()
         {
-              return _context.Currencies != null ? 
-                          View(await _context.Currencies.ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.Currencies'  is null.");
+            if (User.Identity != null && User.Identity.Name != null)
+            {
+                // Get the currency names that the user owns in csv format
+                List<Currency> ownedCurrencies = _context.Currencies.Where(c => c.OwnerName == User.Identity.Name).ToList();
+                string currencyNames = string.Join(",", ownedCurrencies.Select(c => c.Name));
+
+                // Get updated currency data from CoinGecko API
+                HttpResponseMessage response = GetCurrencyUpdates(currencyNames).Result;
+
+                // Update all owned currencies with the HTTP response
+                var updatedCurrency = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+                foreach (Currency c in ownedCurrencies)
+                {
+                    c.Value = (decimal) updatedCurrency[c.Name.ToLower()]["usd"];
+                    c.DailyChange = (decimal) updatedCurrency[c.Name.ToLower()]["usd_24h_change"];
+                    c.PortfolioValue = c.Value * c.Quantity;
+                }
+
+                _context.UpdateRange(ownedCurrencies);
+                await _context.SaveChangesAsync();
+                
+                return View(ownedCurrencies);
+            }
+            return View();
         }
 
         // GET: Currencies/Details/5
@@ -58,6 +94,11 @@ namespace CryptoPortfolioApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,OwnerName,Value,Quantity,PortfolioValue,DailyChange")] Currency currency)
         {
+            if (User.Identity != null && User.Identity.Name != null)
+            {
+                currency.OwnerName = User.Identity.Name;
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(currency);
