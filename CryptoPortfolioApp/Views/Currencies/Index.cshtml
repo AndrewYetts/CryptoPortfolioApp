@@ -4,11 +4,20 @@
     ViewData["Title"] = "Index";
 }
 
-<p>
-    <a asp-action="Create">
+<div class="container row">
+    <a class="col-6" asp-action="Create">
         <input type="button" class="btn btn-outline-success" value="Add Entry" />
     </a>
-</p>
+    <form class="col-3 row" asp-controller="Currencies" asp-action="Index">
+        <div class="col">
+            <input type="text" class="form-control" name="SearchString" placeholder="Currency Name"/>
+        </div>
+        <div class="col">
+            <input type="submit" class="btn btn-secondary" value="Filter" />
+        </div>
+    </form>
+</div>
+
 
 <table class="table table-bordered">
     <thead class="table-dark">

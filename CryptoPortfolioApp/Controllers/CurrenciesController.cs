@@ -34,12 +34,17 @@ namespace CryptoPortfolioApp.Controllers
         }
 
         // GET: Currencies
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
             // Get the currency names that the user owns in csv format
-            var ownerName = string.Empty;
-            if (User.Identity != null && User.Identity.Name != null) ownerName = User.Identity.Name;
+            var ownerName = User.Identity != null && User.Identity.Name != null ? User.Identity.Name : string.Empty;
             var ownedCurrencies = _context.Currencies.Where(c => c.OwnerName == ownerName).ToList();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                ownedCurrencies = ownedCurrencies.Where(c => c.Name.ToLower() == searchString.ToLower()).ToList();
+            }
+
             var currencyNames = string.Join(",", ownedCurrencies.Select(c => c.Name));
 
             // Get updated currency data from CoinGecko API
@@ -61,7 +66,6 @@ namespace CryptoPortfolioApp.Controllers
 
             _context.UpdateRange(ownedCurrencies);
             await _context.SaveChangesAsync();
-
             return View(ownedCurrencies);
         }
 
