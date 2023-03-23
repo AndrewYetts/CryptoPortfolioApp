@@ -4,13 +4,14 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
-
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">
+        <input type="button" class="btn btn-outline-success" value="Add Entry" />
+    </a>
 </p>
-<table class="table">
-    <thead>
+
+<table class="table table-bordered">
+    <thead class="table-dark">
         <tr>
             <th>
                 @Html.DisplayNameFor(model => model.Name)
@@ -54,10 +55,13 @@
             <td>
                 @Html.DisplayFor(modelItem => item.DailyChange)
             </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            <td align="center">
+                <a class="button" asp-action="Edit" asp-route-id="@item.Id">
+                    <input type="button" class="btn btn-sm btn-outline-info" value="Update"/>
+                </a>
+                <a asp-action="Delete" asp-route-id="@item.Id">
+                    <input type="button" class="btn btn-sm btn-outline-danger" value="Delete"/>
+                </a>
             </td>
         </tr>
 }

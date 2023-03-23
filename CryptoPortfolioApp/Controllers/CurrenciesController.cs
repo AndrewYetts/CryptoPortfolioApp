@@ -54,33 +54,15 @@ namespace CryptoPortfolioApp.Controllers
                 {
                     var currency = updatedCurrency[c.Name.ToLower()] ?? string.Empty;
                     c.Value = (decimal) (currency["usd"] ?? decimal.Zero);
-                    c.DailyChange = (decimal) (currency["usd_24h_change"] ?? decimal.Zero);
+                    c.DailyChange = Math.Round((decimal) (currency["usd_24h_change"] ?? decimal.Zero), 2);
                     c.PortfolioValue = c.Value * c.Quantity;
                 }
             }
 
             _context.UpdateRange(ownedCurrencies);
             await _context.SaveChangesAsync();
-                
+
             return View(ownedCurrencies);
-        }
-
-        // GET: Currencies/Details/5
-        public async Task<IActionResult> Details(string id)
-        {
-            if (id == null || _context.Currencies == null)
-            {
-                return NotFound();
-            }
-
-            var currency = await _context.Currencies
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (currency == null)
-            {
-                return NotFound();
-            }
-
-            return View(currency);
         }
 
         // GET: Currencies/Create
