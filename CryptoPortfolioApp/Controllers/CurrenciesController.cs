@@ -42,7 +42,7 @@ namespace CryptoPortfolioApp.Controllers
 
             if (!string.IsNullOrEmpty(searchString))
             {
-                ownedCurrencies = ownedCurrencies.Where(c => c.Name.ToLower() == searchString.ToLower()).ToList();
+                ownedCurrencies = ownedCurrencies.Where(c => c.Name.ToLower().StartsWith(searchString.ToLower())).ToList();
             }
 
             var currencyNames = string.Join(",", ownedCurrencies.Select(c => c.Name));
@@ -66,7 +66,7 @@ namespace CryptoPortfolioApp.Controllers
 
             _context.UpdateRange(ownedCurrencies);
             await _context.SaveChangesAsync();
-            return View(ownedCurrencies);
+            return View(ownedCurrencies.OrderBy(c => c.Name));
         }
 
         // GET: Currencies/Create
