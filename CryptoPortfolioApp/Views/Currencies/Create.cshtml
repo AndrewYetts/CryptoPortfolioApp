@@ -4,12 +4,11 @@
     ViewData["Title"] = "Create";
 }
 
-<h2>Create New Currency Entry</h2>
-<hr />
-
-<div class="row">
+<div class="row justify-content-md-center">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <h3 style="text-align:center">Create Currency</h3>
+        <hr />
+        <form class="form-control bg-light" asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
